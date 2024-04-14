@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 @Data
 public class LoginResponse {
     private String username;
-    private String password;
+    private String message;
 
-    private LocalDateTime localDateTime ;
 }

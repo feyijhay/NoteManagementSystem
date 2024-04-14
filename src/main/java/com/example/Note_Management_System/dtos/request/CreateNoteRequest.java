@@ -10,7 +10,7 @@ public class CreateNoteRequest {
     private String title;
     private String noteContent;
     private String username;
-    private LocalDateTime localDateTime ;
+
 
 
 }

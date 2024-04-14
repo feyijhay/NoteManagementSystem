@@ -16,7 +16,7 @@ public interface NoteServices {
 
     Note updateNote(UpdateNoteRequest updateNoteRequest);
 
-    Note viewNote(ViewNoteRequest viewNoteRequest);
+    Note viewNote(String title);
 
     void deleteNote(DeleteNoteRequest deleteNoteRequest);
 

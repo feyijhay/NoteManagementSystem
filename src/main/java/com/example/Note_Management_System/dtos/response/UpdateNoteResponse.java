@@ -11,5 +11,5 @@ public class UpdateNoteResponse {
     private String title;
     private String noteContent;
 
-    private LocalDateTime localDateTime ;
+
 }

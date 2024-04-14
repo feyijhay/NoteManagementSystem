@@ -86,9 +86,9 @@ public class UserController {
     }
 
     @GetMapping("/view")
-    public ResponseEntity<?> view(@RequestBody ViewNoteRequest viewNoteRequest){
+    public ResponseEntity<?> view(@RequestBody String title){
         try {
-            ViewNoteResponse result = userServices.viewNote(viewNoteRequest);
+            ViewNoteResponse result = userServices.viewNote(title);
             return new ResponseEntity<>(new ApiResponse(true, result), CREATED );
         }
         catch (NoteManagementException e){

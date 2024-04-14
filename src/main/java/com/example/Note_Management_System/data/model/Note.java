@@ -16,6 +16,6 @@ public class Note {
     private String noteContent;
     @Id
     private String id;
-    private LocalDateTime dateCreated ;
+    private LocalDateTime dateCreated = LocalDateTime.now();
 
 }

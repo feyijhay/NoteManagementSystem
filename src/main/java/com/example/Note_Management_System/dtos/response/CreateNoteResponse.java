@@ -12,7 +12,5 @@ public class CreateNoteResponse {
     private String username;
     @Id
     private String id;
-    @DBRef
-    private LocalDateTime localDateTime ;
 
 }

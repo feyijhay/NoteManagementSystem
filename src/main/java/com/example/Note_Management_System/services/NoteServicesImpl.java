@@ -49,8 +49,8 @@ public class NoteServicesImpl implements NoteServices{
     }
 
     @Override
-    public Note viewNote(ViewNoteRequest viewNoteRequest) {
-        return noteRepository.findNoteByTitle(viewNoteRequest.getTitle());
+    public Note viewNote(String title) {
+        return noteRepository.findNoteByTitle(title);
     }
 
     @Override

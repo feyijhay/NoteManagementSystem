@@ -10,5 +10,5 @@ public class FindNoteResponse {
     private String noteContent;
 
 
-    private LocalDateTime localDateTime;
+
 }

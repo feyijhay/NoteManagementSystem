@@ -217,7 +217,7 @@ public class  UserServicesImplTest {
        userServices.findNote("Today's note");
        ViewNoteRequest viewNoteRequest = new ViewNoteRequest();
        viewNoteRequest.setTitle("Today's note");
-       userServices.viewNote(viewNoteRequest);
+       userServices.viewNote("Today's note");
        assertEquals(1, userServices.getNumberOfNotesFor("Jhay"));
 
    }

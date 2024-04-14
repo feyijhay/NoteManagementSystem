@@ -12,6 +12,4 @@ public class RegisterResponse {
     private String lastName;
     private String username;
     private String password;
-
-    private LocalDateTime localDateTime ;
 }

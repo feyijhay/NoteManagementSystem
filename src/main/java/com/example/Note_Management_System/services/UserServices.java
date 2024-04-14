@@ -17,7 +17,7 @@ public interface UserServices {
 
     UpdateNoteResponse updateNote(UpdateNoteRequest updateNoteRequest);
 
-    ViewNoteResponse viewNote(ViewNoteRequest viewNoteRequest);
+    ViewNoteResponse viewNote(String title);
 
     DeleteNoteResponse deleteNote(DeleteNoteRequest deleteNoteRequest);
     long getNumberOfUser();

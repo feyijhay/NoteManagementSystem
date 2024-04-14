@@ -9,6 +9,7 @@ import com.example.Note_Management_System.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -37,6 +38,9 @@ public class UserServicesImpl implements UserServices{
     registerResponse.setLastName(savedUser.getLastName());
     registerResponse.setUsername(savedUser.getUsername());
     registerResponse.setPassword(savedUser.getPassword());
+
+
+
         return registerResponse;
     }
 
@@ -56,8 +60,8 @@ public class UserServicesImpl implements UserServices{
 
        LoginResponse loginResponse = new  LoginResponse();
        loginResponse.setUsername(user.getUsername());
-       loginResponse.setPassword(user.getPassword());
-       loginResponse.setLocalDateTime(loginResponse.getLocalDateTime());
+       loginResponse.setMessage("Login successful");
+
 
        userRepository.save(user);
        return  loginResponse;
@@ -76,6 +80,7 @@ public class UserServicesImpl implements UserServices{
         createNoteResponse.setUsername(user.getUsername());
         createNoteResponse.setTitle(note.getTitle());
         createNoteResponse.setNoteContent(note.getNoteContent());
+        createNoteResponse.setId(note.getId());
 //        if(createNoteRequest.getTitle() == null) throw new TitleCannotBeEmptyException("Create title!");
         List <Note> notes = user.getNotes();
         notes.add(note);
@@ -92,7 +97,6 @@ public class UserServicesImpl implements UserServices{
         FindNoteResponse findNoteResponse = new FindNoteResponse();
         findNoteResponse.setTitle(note.getTitle());
         findNoteResponse.setNoteContent(note.getNoteContent());
-        findNoteResponse.setLocalDateTime(note.getDateCreated());
 //        if(!note.equals(findNote(title))) throw new NoteNotFoundForThisTitleException("Note not found!");
         return  findNoteResponse;
     }
@@ -101,15 +105,16 @@ public class UserServicesImpl implements UserServices{
     public UpdateNoteResponse updateNote(UpdateNoteRequest updateNoteRequest) {
         Note note = noteServices.updateNote(updateNoteRequest);
         UpdateNoteResponse updateNoteResponse = new UpdateNoteResponse();
+        updateNoteResponse.setUsername(note.getUsername());
         updateNoteResponse.setNoteContent(note.getNoteContent());
         updateNoteResponse.setTitle(note.getTitle());
-        updateNoteResponse.setLocalDateTime(note.getDateCreated());
+
         return updateNoteResponse ;
     }
 
     @Override
-    public ViewNoteResponse viewNote(ViewNoteRequest viewNoteRequest) {
-        Note note =  noteServices.viewNote(viewNoteRequest);
+    public ViewNoteResponse viewNote(String title) {
+        Note note =  noteServices.viewNote(title);
         ViewNoteResponse viewNoteResponse = new ViewNoteResponse();
         viewNoteResponse.setTitle(note.getTitle());
         viewNoteResponse.setNoteContent(note.getNoteContent());
@@ -145,7 +150,6 @@ public class UserServicesImpl implements UserServices{
         User user = userRepository.findByUsername(logoutRequest.getUsername());
         LogoutResponse logoutResponse = new LogoutResponse();
         logoutResponse.setUsername(user.getUsername());
-        logoutResponse.setPassword(user.getPassword());
         user.setLoggedIn(false);
         userRepository.save(user);
 
