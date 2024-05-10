@@ -3,6 +3,8 @@ package com.example.Note_Management_System.services;
 import com.example.Note_Management_System.data.repositories.NoteRepository;
 import com.example.Note_Management_System.data.repositories.UserRepository;
 import com.example.Note_Management_System.dtos.request.*;
+import com.example.Note_Management_System.dtos.response.CreateNoteResponse;
+import com.example.Note_Management_System.dtos.response.ViewNoteResponse;
 import com.example.Note_Management_System.exception.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -152,20 +154,27 @@ public class  UserServicesImplTest {
        userServices.login(loginRequest1);
        assertEquals(2, userServices.getNumberOfUser());
 
-        createNote();
 
        CreateNoteRequest createNoteRequest1 = new CreateNoteRequest();
        createNoteRequest1.setUsername("Moh");
        createNoteRequest1.setTitle("Dayo And Beejay");
        createNoteRequest1.setNoteContent("Woooosh");
        userServices.createNote(createNoteRequest1);
-       assertEquals(2, userServices.getTotalNumberOfNotes());
 
+
+       CreateNoteRequest createNoteRequest =new CreateNoteRequest();
+       createNoteRequest.setUsername("Jhay");
+       createNoteRequest.setTitle("Today's note");
+       createNoteRequest.setNoteContent("Today is such a great day!");
+       CreateNoteResponse response = userServices.createNote(createNoteRequest);
+       assertEquals(2, userServices.getTotalNumberOfNotes());
 
        DeleteNoteRequest deleteNoteRequest = new DeleteNoteRequest();
        deleteNoteRequest.setUsername("Jhay");
        deleteNoteRequest.setTitle("Today's note");
+       deleteNoteRequest.setId(response.getId());
        userServices.deleteNote(deleteNoteRequest);
+
        assertEquals(1L, userServices.getTotalNumberOfNotes());
        assertEquals(0, userServices.getNumberOfNotesFor("Jhay"));
 
@@ -191,7 +200,7 @@ public class  UserServicesImplTest {
        createNoteRequest1.setUsername("Moh");
        createNoteRequest1.setTitle("Dayo And Beejay");
        createNoteRequest1.setNoteContent("Woooosh");
-       userServices.createNote(createNoteRequest1);
+       CreateNoteResponse response = userServices.createNote(createNoteRequest1);
        assertEquals(1, userServices.getTotalNumberOfNotes());
 
 
@@ -199,6 +208,7 @@ public class  UserServicesImplTest {
        updateNoteRequest.setUsername("Moh");
        updateNoteRequest.setTitle("Tired");
        updateNoteRequest.setNoteContent("Hmmmmmm");
+       updateNoteRequest.setId(response.getId());
        userServices.updateNote(updateNoteRequest);
        assertEquals(1, userServices.getNumberOfNotesFor("Moh"));
    }
@@ -211,14 +221,17 @@ public class  UserServicesImplTest {
 
        login();
 
-       createNote();
+       CreateNoteRequest createNoteRequest = new CreateNoteRequest();
+       createNoteRequest.setUsername("Jhay");
+       createNoteRequest.setTitle("Today's note");
+       createNoteRequest.setNoteContent("Today is such a great day!");
+       CreateNoteResponse response = userServices.createNote(createNoteRequest);
        assertEquals(1, userServices.getNumberOfUser());
 
-       userServices.findNote("Today's note");
-       ViewNoteRequest viewNoteRequest = new ViewNoteRequest();
-       viewNoteRequest.setTitle("Today's note");
-       userServices.viewNote("Today's note");
-       assertEquals(1, userServices.getNumberOfNotesFor("Jhay"));
+//       userServices.findNote(response.getId());
+       ViewNoteResponse viewNoteResponse = userServices.viewNote(response.getId());
+       assertEquals("Today's note", viewNoteResponse.getTitle());
+       assertEquals("Today is such a great day!", viewNoteResponse.getNoteContent());
 
    }
 
@@ -226,14 +239,7 @@ public class  UserServicesImplTest {
     public void testThatUserCannotLoginWithWrongPassword_ThrowsAnException(){
         userRepository.deleteAll();
 
-//       RegisterRequest registerRequest1 = new RegisterRequest();
-//       registerRequest1.setFirstName("Ayinla");
-//       registerRequest1.setLastName("Dayo");
-//       registerRequest1.setUsername("Moh");
-//       registerRequest1.setPassword("Tope");
-//       userServices.register(registerRequest1);
        register();
-
 
        LoginRequest loginRequest = new LoginRequest();
        loginRequest.setUsername("Jhay");
@@ -255,9 +261,8 @@ public class  UserServicesImplTest {
        System.out.println(loginRequest.getPassword());
 
        assertThrows(NoteManagementException.class, ()->userServices.login(loginRequest));
-       System.out.println();
+    }
 
-   }
 
     @Test
     public void testThatUserCannotCreateNoteWithoutATitle_ThrowsAnException(){
@@ -285,9 +290,9 @@ public class  UserServicesImplTest {
     public void testThatUserCannotLoginWithoutRegistering_ThrowsAnException(){
         userRepository.deleteAll();
         LoginRequest loginRequest1 = new LoginRequest();
-        loginRequest1.setUsername("Moh");
-        loginRequest1.setPassword("Tope");
-        assertThrows(UserNotFoundException.class, ()->userServices.login(loginRequest1));
+        loginRequest1.setUsername("Feyi");
+        loginRequest1.setPassword("1111");
+        assertThrows(NoteManagementException.class, ()->userServices.login(loginRequest1));
 
     }
 
@@ -307,33 +312,91 @@ public class  UserServicesImplTest {
 
     }
 
+    @Test
+    public void testThatUserCanShareNoteToAnotherUser(){
+        userRepository.deleteAll();
 
-//    @Test
-//    public void testThatUserCannotFindNoteWithWrongTitle_ThrowsAnException(){
-//        userRepository.deleteAll();
-//
-//        RegisterRequest registerRequest1 = new RegisterRequest();
-//        registerRequest1.setFirstName("Ayinla");
-//        registerRequest1.setLastName("Dayo");
-//        registerRequest1.setUsername("Moh");
-//        registerRequest1.setPassword("Tope");
-//
-//        LoginRequest loginRequest1 = new LoginRequest();
-//        loginRequest1.setUsername("Moh");
-//        loginRequest1.setPassword("Tope");
-//        userServices.login(loginRequest1);
-//
-//        CreateNoteRequest createNoteRequest1 = new CreateNoteRequest();
-//        createNoteRequest1.setUsername("Moh");
-//        createNoteRequest1.setTitle("Dayo And Beejay");
-//        createNoteRequest1.setNoteContent("Woooosh");
-//        userServices.createNote(createNoteRequest1);
-//
-//        userServices.findNotesBYTitle("Dayo");
-//        assertEquals(1, userServices.findNotesBYTitle("Dayo"));
-//        assertThrows(NoteNotFoundForThisTitleException.class, ()->userServices.getNumberOfNotesFor("Moh"));
+        register();
+
+        RegisterRequest registerRequest1 = new RegisterRequest();
+        registerRequest1.setFirstName("Ayinla");
+        registerRequest1.setLastName("Dayo");
+        registerRequest1.setUsername("Jumoke");
+        registerRequest1.setPassword("Tope");
+        userServices.register(registerRequest1);
+
+        login();
+
+        CreateNoteRequest createNoteRequest1 = new CreateNoteRequest();
+        createNoteRequest1.setUsername("Jhay");
+        createNoteRequest1.setTitle("Today's note");
+        createNoteRequest1.setNoteContent("Today's class was an interesting one...we had a conversation about what men wants with Mr Femi!");
+        CreateNoteResponse  createNoteResponse= userServices.createNote(createNoteRequest1);
+        assertEquals(1, userServices.getNumberOfNotesFor("Jhay"));
+
+        ShareNoteRequest shareNoteRequest = new ShareNoteRequest();
+        shareNoteRequest.setSenderUsername("Jhay");
+        shareNoteRequest.setId(createNoteResponse.getId());
 
 
+        shareNoteRequest.setReceiverUsername("Jumoke");
+        userServices.shareNote(shareNoteRequest);
 
-//    }
+
+        assertEquals(1, userServices.getNumberOfNotesFor("Jumoke"));
+
+    }
+
+    @Test
+    public void testThatUserCanUnShareNoteSharedToAnotherUser(){
+        userRepository.deleteAll();
+
+        register();
+
+        RegisterRequest registerRequest1 = new RegisterRequest();
+        registerRequest1.setFirstName("Ayinla");
+        registerRequest1.setLastName("Dayo");
+        registerRequest1.setUsername("Jumoke");
+        registerRequest1.setPassword("Tope");
+        userServices.register(registerRequest1);
+
+        login();
+
+        CreateNoteRequest createNoteRequest1 = new CreateNoteRequest();
+        createNoteRequest1.setUsername("Jhay");
+        createNoteRequest1.setTitle("Today's note");
+        createNoteRequest1.setNoteContent("Today's class was an interesting one...we had a conversation about what men wants with Mr Femi!");
+        CreateNoteResponse  createNoteResponse= userServices.createNote(createNoteRequest1);
+        assertEquals(1, userServices.getNumberOfNotesFor("Jhay"));
+
+
+        ShareNoteRequest shareNoteRequest = new ShareNoteRequest();
+        shareNoteRequest.setSenderUsername("Jhay");
+        shareNoteRequest.setId(createNoteResponse.getId());
+        shareNoteRequest.setReceiverUsername("Jumoke");
+        userServices.shareNote(shareNoteRequest);
+
+        UnShareNoteRequest unshareNoteRequest = new UnShareNoteRequest();
+        unshareNoteRequest.setSenderUsername("Jhay");
+        unshareNoteRequest.setReceiverUsername("Jumoke");
+        unshareNoteRequest.setId(createNoteResponse.getId());
+        userServices.unShareNote(unshareNoteRequest);
+
+        assertEquals(0, userServices.getNumberOfNotesFor("Jumoke"));
+
+    }
+
+
+    @Test
+    public void testThatUserHasToBeLoggedInToCreateNote_ThrowsAnException(){
+        register();
+
+
+        CreateNoteRequest createNoteRequest = new CreateNoteRequest();
+        createNoteRequest.setUsername("Jhay");
+        createNoteRequest.setTitle("Today's note");
+        createNoteRequest.setNoteContent("Today's class was an interesting one...we had a conversation about what men wants with Mr Femi!");
+        assertThrows(LoginRequiredException.class, ()-> userServices.createNote(createNoteRequest));
+
+    }
 }

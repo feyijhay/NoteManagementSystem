@@ -2,10 +2,8 @@ package com.example.Note_Management_System.services;
 
 import com.example.Note_Management_System.data.model.Note;
 import com.example.Note_Management_System.data.repositories.NoteRepository;
-import com.example.Note_Management_System.dtos.request.CreateNoteRequest;
-import com.example.Note_Management_System.dtos.request.DeleteNoteRequest;
-import com.example.Note_Management_System.dtos.request.UpdateNoteRequest;
-import com.example.Note_Management_System.dtos.request.ViewNoteRequest;
+import com.example.Note_Management_System.dtos.request.*;
+import com.example.Note_Management_System.exception.NoteNotFoundExecption;
 import com.example.Note_Management_System.exception.NoteNotFoundForThisTitleException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,43 +27,58 @@ public class NoteServicesImpl implements NoteServices{
     }
 
     @Override
-    public Note findNote(String title) {
-        Note note = noteRepository.findNoteByTitle(title);
-        if (note == null )throw new NoteNotFoundForThisTitleException("this note cannote be found");
+    public Note findNote(String id) {
+        Note note = noteRepository.findNoteById(id);
+        if (note == null )throw new NoteNotFoundForThisTitleException("this note cannot be found");
         return  note;
 
     }
 
     @Override
     public Note updateNote(UpdateNoteRequest updateNoteRequest) {
-        Note note = new Note();
-        noteRepository.findNoteByTitle(updateNoteRequest.getTitle());
+        Note note = noteRepository.findNoteById(updateNoteRequest.getId());
+        if (note == null) {
+            throw new NoteNotFoundExecption("Note not Found");
+        }
         note.setUsername(updateNoteRequest.getUsername());
-        note.setTitle(updateNoteRequest.getTitle());
-        note.setNoteContent(updateNoteRequest.getNoteContent());
-
+        if(updateNoteRequest.getTitle() != null){
+            note.setTitle(updateNoteRequest.getTitle());
+        }
+        if(updateNoteRequest.getNoteContent() != null){
+            note.setNoteContent(updateNoteRequest.getNoteContent());
+        }
         return noteRepository.save(note);
 
     }
 
     @Override
-    public Note viewNote(String title) {
-        return noteRepository.findNoteByTitle(title);
+    public Note viewNote(String id) {
+        return noteRepository.findNoteById(id);
     }
 
     @Override
-    public void deleteNote(DeleteNoteRequest deleteNoteRequest) {
-        Note note = noteRepository.findNoteByTitle(deleteNoteRequest.getTitle());
-        noteRepository.delete(note);
-
-
-
-     }
+    public Note shareNote(ShareNoteRequest shareNoteRequest) {
+        Note note = noteRepository.findNoteById(shareNoteRequest.getId());
+        return note;
+    }
+    @Override
+    public Note unshareNote(UnShareNoteRequest unshareNoteRequest) {
+        Note note = noteRepository.findNoteById(unshareNoteRequest.getId());
+        return note;
+    }
+    @Override
+    public Note deleteNote(DeleteNoteRequest deleteNoteRequest) {
+        Note note = noteRepository.findNoteById(deleteNoteRequest.getId());
+         noteRepository.delete(note);
+         return note;
+    }
 
     @Override
     public long getTotalNumberOfNotes() {
         return noteRepository.count();
     }
+
+
 
     @Override
     public List<Note> findNotesByTitle(String title) {

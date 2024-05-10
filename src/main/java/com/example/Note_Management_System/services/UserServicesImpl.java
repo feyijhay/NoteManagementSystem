@@ -9,7 +9,6 @@ import com.example.Note_Management_System.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -21,12 +20,12 @@ public class UserServicesImpl implements UserServices{
     private NoteServices noteServices;
 
 
-
-
-
     @Override
     public RegisterResponse register(RegisterRequest registerRequest) {
      if(userRepository.existsByUsername(registerRequest.getUsername())) throw new UsernameExistsException("Username already taken!");
+     if(registerRequest.getUsername().isBlank() || registerRequest.getUsername().isEmpty())throw new InvalidUsernameFormatException("Invalid format!!!");
+     if(registerRequest.getFirstName().isBlank() || registerRequest.getFirstName().isEmpty())throw new InvalidNameFormatException("Wrong name format!!!");
+     if(registerRequest.getLastName().isBlank() || registerRequest.getLastName().isEmpty())throw new InvalidNameFormatException("Wrong name format!!");
     User user = new User();
     user.setFirstName(registerRequest.getFirstName());
     user.setLastName(registerRequest.getLastName());
@@ -40,9 +39,10 @@ public class UserServicesImpl implements UserServices{
     registerResponse.setPassword(savedUser.getPassword());
 
 
-
         return registerResponse;
     }
+
+
 
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
@@ -50,7 +50,7 @@ public class UserServicesImpl implements UserServices{
        if (user == null)throw new UserNotFoundException("This user name does not exist");
        if (user.getPassword().equals(loginRequest.getPassword()))user.setLoggedIn(true);
        if(!user.getPassword().equals(loginRequest.getPassword())) throw new NoteManagementException("Input correct password");
-       if(!user.getUsername().equals(loginRequest.getUsername())) throw new NoteManagementException("You need to register to be logged in!");
+       if(!user.getUsername().equals(loginRequest.getUsername())) throw new NoteManagementException("Username or password is not correct");
 
 
        user.setUsername(loginRequest.getUsername());
@@ -73,9 +73,12 @@ public class UserServicesImpl implements UserServices{
         if(createNoteRequest.getTitle() == null) throw new TitleCannotBeEmptyException("Create title!");
         if (createNoteRequest.getTitle().isBlank())throw new TitleCannotBeEmptyException("Create title!");
         if (createNoteRequest.getTitle().isEmpty()) throw new TitleCannotBeEmptyException("Create title!");
+
         Note note = noteServices.createNote(createNoteRequest);
 
         User user = userRepository.findByUsername(createNoteRequest.getUsername());
+        if(user == null) throw new UserNotFoundException("No user found for this username!");
+        if(!user.isLoggedIn()) throw new LoginRequiredException("Please login to continue");
         CreateNoteResponse createNoteResponse = new CreateNoteResponse();
         createNoteResponse.setUsername(user.getUsername());
         createNoteResponse.setTitle(note.getTitle());
@@ -91,14 +94,62 @@ public class UserServicesImpl implements UserServices{
         return createNoteResponse;
     }
 
+
     @Override
-    public FindNoteResponse findNote(String title) {
-        Note note = noteServices.findNote(title);
+    public ShareNoteResponse shareNote(ShareNoteRequest shareNoteRequest) {
+        User sender = userRepository.findByUsername(shareNoteRequest.getSenderUsername());
+        User receiver = userRepository.findByUsername(shareNoteRequest.getReceiverUsername());
+        if(receiver == null || sender == null)throw new UserNotFoundException("User not found");
+
+
+        Note note = noteServices.shareNote(shareNoteRequest);
+        if(note == null)throw new NoteNotFoundExecption("No note found!");
+        List<Note> receiverNotes = receiver.getNotes();
+        receiverNotes.add(note);
+        userRepository.save(receiver);
+
+        ShareNoteResponse shareNoteResponse = new ShareNoteResponse();
+        shareNoteResponse.setSenderUsername(sender.getUsername());
+        shareNoteResponse.setReceiverUsername(receiver.getUsername());
+        shareNoteResponse.setId(note.getId());
+        shareNoteResponse.setMessage("Note shared succesfully!!!");
+
+        return shareNoteResponse;
+    }
+
+    @Override
+    public UnShareNoteResponse unShareNote(UnShareNoteRequest unshareNoteRequest) {
+        User sender = userRepository.findByUsername(unshareNoteRequest.getSenderUsername());
+        User receiver =  userRepository.findByUsername(unshareNoteRequest.getReceiverUsername());
+
+        Note note = noteServices.unshareNote(unshareNoteRequest);
+        List<Note> receiverNotes = receiver.getNotes();
+        receiverNotes.remove(note);
+        userRepository.save(receiver);
+
+        UnShareNoteResponse unshareNoteResponse = new UnShareNoteResponse();
+        unshareNoteResponse.setSenderUsername(sender.getUsername());
+        unshareNoteResponse.setReceiverUsername(receiver.getUsername());
+        unshareNoteResponse.setId(note.getId());
+        unshareNoteResponse.setMessage("Note unshared successfully!");
+
+        return unshareNoteResponse;
+    }
+
+
+    @Override
+    public FindNoteResponse findNote(String id) {
+        Note note = noteServices.findNote(id);
         FindNoteResponse findNoteResponse = new FindNoteResponse();
-        findNoteResponse.setTitle(note.getTitle());
+        findNoteResponse.setId(note.getId());
         findNoteResponse.setNoteContent(note.getNoteContent());
-//        if(!note.equals(findNote(title))) throw new NoteNotFoundForThisTitleException("Note not found!");
         return  findNoteResponse;
+    }
+
+    @Override
+    public User findUser(String username) {
+        User user = userRepository.findByUsername(username);
+        return user;
     }
 
     @Override
@@ -113,12 +164,15 @@ public class UserServicesImpl implements UserServices{
     }
 
     @Override
-    public ViewNoteResponse viewNote(String title) {
-        Note note =  noteServices.viewNote(title);
+    public ViewNoteResponse viewNote(String id) {
+        Note note =  noteServices.viewNote(id);
+        if (note == null) {
+            throw new NoteNotFoundExecption("Note does not exist");
+        }
         ViewNoteResponse viewNoteResponse = new ViewNoteResponse();
+        viewNoteResponse.setId(note.getId());
         viewNoteResponse.setTitle(note.getTitle());
         viewNoteResponse.setNoteContent(note.getNoteContent());
-
 
 
         return viewNoteResponse;
@@ -127,13 +181,14 @@ public class UserServicesImpl implements UserServices{
     @Override
     public DeleteNoteResponse deleteNote(DeleteNoteRequest deleteNoteRequest) {
         User user = userRepository.findByUsername(deleteNoteRequest.getUsername());
+        Note note = noteServices.findNote(deleteNoteRequest.getId());
 
-        Note note = noteServices.findNote(deleteNoteRequest.getTitle());
         DeleteNoteResponse deleteNoteResponse = new DeleteNoteResponse();
         deleteNoteResponse.setTitle(note.getTitle());
         deleteNoteResponse.setUsername(note.getUsername());
         List<Note> notes = user.getNotes();
         notes.remove(note);
+
         userRepository.save(user);
         noteServices.deleteNote(deleteNoteRequest);
 
@@ -168,6 +223,7 @@ public class UserServicesImpl implements UserServices{
         return numberOfNotes;
     }
 
+
     @Override
     public long getTotalNumberOfNotes() {
         return noteServices.getTotalNumberOfNotes();
@@ -177,4 +233,6 @@ public class UserServicesImpl implements UserServices{
     public List<Note> findNotesBYTitle(String title) {
         return noteServices.findNotesByTitle(title);
     }
+
+
 }

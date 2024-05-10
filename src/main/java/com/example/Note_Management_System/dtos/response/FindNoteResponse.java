@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import java.time.LocalDateTime;
 @Data
 public class FindNoteResponse {
-    private String title;
+    private String id;
     private String noteContent;
 
 

@@ -8,4 +8,5 @@ public class DeleteNoteResponse {
     private String username;
     private String title;
 
+
 }

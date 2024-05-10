@@ -10,4 +10,12 @@ public class RegisterRequest {
     private String lastName;
     private String username;
     private String password;
+
+
+//    public void setUsername(String username){
+//        this.username = username.toLowerCase();
+//    }
+
+
+
 }

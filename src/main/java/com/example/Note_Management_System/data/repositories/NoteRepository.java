@@ -7,7 +7,8 @@ import java.util.List;
 
 public interface NoteRepository extends MongoRepository<Note, String> {
     Note findNoteByTitle(String  title);
-    boolean existsByTitle(String title);
+
+    Note findNoteById(String id);
 
     List<Note> findNotesByTitle(String title);
 

@@ -7,4 +7,5 @@ public class UpdateNoteRequest {
     private String username;
     private String title;
     private String noteContent;
+    private String id;
 }
