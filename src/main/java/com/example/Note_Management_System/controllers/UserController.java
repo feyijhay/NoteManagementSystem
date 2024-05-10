@@ -86,8 +86,8 @@ public class UserController {
         }
     }
 
-    @GetMapping("/view/")
-    public ResponseEntity<?> view(@RequestBody String id){
+    @GetMapping("/view/{id}")
+    public ResponseEntity<?> view(@PathVariable("id") String id){
         try {
             ViewNoteResponse result = userServices.viewNote(id);
             return new ResponseEntity<>(new ApiResponse(true, result), CREATED );
@@ -97,8 +97,8 @@ public class UserController {
         }
     }
 
-    @GetMapping("/find/")
-    public ResponseEntity<?> find(@RequestBody String id){
+    @GetMapping("/find/{id}")
+    public ResponseEntity<?> find(@PathVariable("id") String id){
         try {
             FindNoteResponse result = userServices.findNote(id);
             return new ResponseEntity<>(new ApiResponse(true, result), CREATED );

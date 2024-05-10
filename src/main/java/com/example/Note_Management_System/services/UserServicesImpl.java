@@ -99,7 +99,8 @@ public class UserServicesImpl implements UserServices{
     public ShareNoteResponse shareNote(ShareNoteRequest shareNoteRequest) {
         User sender = userRepository.findByUsername(shareNoteRequest.getSenderUsername());
         User receiver = userRepository.findByUsername(shareNoteRequest.getReceiverUsername());
-        if(receiver == null || sender == null)throw new UserNotFoundException("User not found");
+        if(receiver == null )throw new UserNotFoundException("Receiver user not found");
+        if (sender == null)throw new UserNotFoundException("Sender user not found");
 
 
         Note note = noteServices.shareNote(shareNoteRequest);
@@ -112,7 +113,7 @@ public class UserServicesImpl implements UserServices{
         shareNoteResponse.setSenderUsername(sender.getUsername());
         shareNoteResponse.setReceiverUsername(receiver.getUsername());
         shareNoteResponse.setId(note.getId());
-        shareNoteResponse.setMessage("Note shared succesfully!!!");
+        shareNoteResponse.setMessage("Note shared successfully!!!");
 
         return shareNoteResponse;
     }
@@ -121,8 +122,15 @@ public class UserServicesImpl implements UserServices{
     public UnShareNoteResponse unShareNote(UnShareNoteRequest unshareNoteRequest) {
         User sender = userRepository.findByUsername(unshareNoteRequest.getSenderUsername());
         User receiver =  userRepository.findByUsername(unshareNoteRequest.getReceiverUsername());
+        if(sender == null)throw new UserNotFoundException("Sender not found");
+        if (receiver == null) {
+            throw new UserNotFoundException("Receiver not found");
+        }
 
         Note note = noteServices.unshareNote(unshareNoteRequest);
+        if (note == null) {
+            throw new NoteNotFoundExecption("Note not found ");
+        }
         List<Note> receiverNotes = receiver.getNotes();
         receiverNotes.remove(note);
         userRepository.save(receiver);
